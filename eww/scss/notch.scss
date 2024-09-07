@@ -1,0 +1,81 @@
+$bdr: 0px 0px 15px 15px;
+.notch{
+ background-color:$bg;
+ padding: 3px 5px;
+  border-radius:$bdr;
+}
+.song{
+  font-size:20px;
+  font-weight:bold;
+}
+.artist{
+  font-size:10px;
+  font-weight:bold;
+}
+.status{
+  font-size:10px;
+}
+.artwork_container{
+  padding:0px;
+  border-radius:30px;
+  background-size: cover;
+  background-position: center;
+  min-height: 20px;
+  min-width: 20px;
+  border-radius: 45px;
+
+}
+.mini_artwork{
+
+  background-size: cover;
+  background-position: center;
+  min-height: 10px;
+  min-width: 10px; 
+  margin: 10px;
+  border-radius: 45px;
+}
+label {
+  margin:0;
+}
+box{
+  padding:0;
+}
+.info_containter{
+  padding:30px 2px;
+}
+.black_notch{
+  background-color:$bg;
+  margin:0px;
+  border-radius:$bdr;
+}
+*{
+    all: unset;
+    font-family: feather, Maple Mono SC NF;
+}
+
+
+scale trough {
+    all: unset;
+    background-color: $bg3;
+    box-shadow: 0 2px 3px 2px $shadow;
+    border-radius: 16px;
+    min-height: 10px;
+    min-width: 30px;
+    margin: 0px 10px 0px 0px;
+    &:hover{
+      min-height:15px;
+    }
+      highlight {
+      background-image: linear-gradient(to right, $volbar1 30%, $volbar2 50%, $volbar3 100% *50);
+      border-radius: 10px;
+  }
+
+}
+.snip_button{
+  border:2px dashed white;
+  border-radius:8px;
+  padding:5px 10px;
+  :active{
+    background-color:rgba(255,250,250,0.5);
+  }
+}

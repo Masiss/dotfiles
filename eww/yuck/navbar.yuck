@@ -1,0 +1,518 @@
+(defvar IMGDIR "/home/binhnguyen/.config/eww/images/")
+(defvar WIFI_DEVICE "wlo1")
+(defpoll WIFI_CONNECTED :interval "2s" "nmcli -f ssid,in-use device wifi list | grep '*' | awk -F '  ' '{print$1}'")
+(defpoll WIFI_STRENGTH :interval "5s" "nmcli -f IN-USE,SIGNAL device wifi list | grep '*' | awk '{print$2}'")
+(defvar wifi_rev false)
+(defpoll DATE :interval "10h" "date +'%a, %b %d, %Y'")
+
+(defpoll WORKSPACE_LIST 
+:interval "1s" 
+"cat workspace.json")
+(defwindow navbar
+  :monitor 0
+  :geometry (geometry :x "0%" 
+                      :y "0%" 
+		      :width "${100*1.32}%"
+                      :height "2%"
+                      :anchor "top center"
+            )
+  :exclusive true
+    (centerbox 
+      :orientation "h"
+      :space-evenly true 
+      :vexpand false 
+      :hexpand false
+      (box
+      :space-evenly false
+      :width 90
+      (left))
+      (box
+      :class "center"
+      :space-evenly false
+      :spacing 10
+      :halign "center"
+      :width 10
+	  (label :text "${clock_time} : ${clock_minute}" 
+	  :style "font-weight:bold;font-family:SF Pro Display;font-size:15px;"
+	  :justify "center"
+	  :width 10
+	  )
+      )
+      (right)
+    )
+)
+(defvar CUR_WORKSPACE "0")
+(defvar works "[1,2,3,4,5,6]")
+(defwidget left []
+    (box 
+    :space-evenly false
+    :spacing 100
+    :orientation "h"
+	  (box :orientation "h"
+	    :space-evenly false 
+	    :spacing 7 
+	    :class "left"
+	      (for workspace in works 
+		(button 
+		:onclick "hyprctl dispatch workspace ${workspace}"
+		:class "workspace_button"
+		:style "${round(workspace,1)==round(CUR_WORKSPACE,1)?'background-color:rgba(255,250,250,1);color:black;':''}"
+		 (label :text "${workspace}")
+		 )
+	      )
+	  )
+	(box
+	:space-evenly true 
+	:class "left"
+	:halign "center"
+	    (eventbox
+	    :width 30
+	    :onclick "hyprctl dispatch workspace 6"
+	    :space-evenly false :spacing 3
+	    :onhover "eww update REVEAL_SPOTIFY=true"
+	    :onhoverlost "eww update REVEAL_SPOTIFY=false"
+		(box :space-evenly false :spacing 5
+		:halign "center"
+		    (image 
+		    :path "images/spotify.svg"
+		    :image-width 20 
+		    :image-height 20)
+		    (revealer :transition "slideright"
+		    :reveal {(PLAYER_STATUS=="Playing" || REVEAL_SPOTIFY )?true:false} 
+		    :duration "500ms"
+			(box
+			:spacing 5
+			:space-evenly false
+			    (label :text SONG 
+			    :limit-width 30
+			    :style "font-family:SF Pro Display;")
+			 (button 
+			  :class "spotify_button"
+			  :onclick "playerctl --player=spotify previous"
+			  (image 
+			  :path PREVIOUS_BUTTON 
+			  :image-width 15 
+			  :image-height 15))
+			  (button 
+			  :class "spotify_button"
+			  :onclick "playerctl --player=spotify play-pause"
+			  (image 
+			  :path "${PLAYER_STATUS=="Playing"?"images/pause.svg":"images/play.svg"}" 
+			  :image-width 15 
+			  :image-height 15))
+			  (button 
+			  :class "spotify_button"
+			  :onclick "playerctl --player=spotify next"
+			  (image 
+			  :path NEXT_BUTTON 
+			  :image-width 15 
+			  :image-height 15))
+			)
+		    )
+		)
+	    ) 
+	)
+    )
+)
+
+(deflisten NET_UP "scripts/wifi.sh --netup")
+(deflisten NET_DOWN "scripts/wifi.sh --netdown")
+(defvar REVEAL_SPOTIFY false)
+(defvar VOLUME_REVEAL false)
+(defwidget right []
+  (box 
+  :orientation "h"
+  :spacing 10
+  :space-evenly false
+  :halign "end"
+  :class "right"
+  :vexpand false
+  :hexpand false
+	(box :space-evenly false :spacing 3 
+	:style "font-weight:bold; font-family:'JetBrains Mono';"
+	:vexpand false 
+	:hexpand false 
+	    (box
+	    :class "net_stat"
+	    :space-evenly false 
+	    :spacing 3
+		(image :path "images/cloud-arrow-down.svg" :image-width 20 :image-height 20)
+		(label :text NET_DOWN )
+	    )
+	    (box
+	    :class "net_stat"
+	    :space-evenly false 
+	    :spacing 3
+		(image :path "images/cloud-arrow-up.svg" :image-width 20 :image-height 20)
+		(label :text NET_UP)
+	    )
+	)
+;;  (button 
+;;      :onclick "eww open --toggle system"
+;;      :class "chevron-down-btn"
+;;  (image :path "images/chevron-down.svg"
+;;  :image-width 20 :image-height 20
+;;  )
+;;	)
+	
+	(cloudflare)
+
+	(box 
+	  (image :path "${MIC_STATUS=='[MUTED]'?'images/microphone-slash.svg':'images/microphone.svg'}"
+	    :image-width 20 
+	    :image-height 20
+	  )
+	)
+	(eventbox
+	:onhover "eww update VOLUME_REVEAL=true"
+	:onhoverlost "eww update VOLUME_REVEAL=false"
+	 (box :space-evenly false :spacing 5 :valign "center"
+	 (image :path "${VOLUME_STATUS=='[MUTED]'?'images/volume-xmark.svg':'images/volume-max.svg'}"
+	    :image-width 20 
+	    :image-height 20
+	  )
+	  (revealer 
+	    :reveal VOLUME_REVEAL
+	    :transition "slideright"
+	    :duration "500ms"
+	    (label :text "${VOLUME}" :style "font-size:13px;")
+	  )
+	  )
+	)
+	(wifi)
+	(eventbox
+	    :onhover "eww update BATT_REVEAL=true"
+	    :onhoverlost "eww update BATT_REVEAL=false"
+	    :space-evenly false
+	    :spacing 3
+	    (box :space-evenly false :spacing 3
+	    (image :path {BATTERY_STATUS=='Charging'?'images/battery-bolt.svg':
+		BATTERY>70?'images/battery-full.svg':
+		BATTERY>20?'images/battery-mid.svg':
+		'images/battery-low.svg'}
+		:image-height 20
+		:image-width 20)
+	    (revealer 
+	    :reveal BATT_REVEAL
+	    :transition "slideright"
+	    :duration "500ms"
+			(label :text '${BATTERY}%' :style "font-weight:bold;font-size:12px;")
+	    ))
+	)
+	(sep)
+	(button :onclick "eww open --toggle calendar"
+	(label :text DATE 
+	      :justify "center" 
+	      :style "font-weight:bold;font-size:13px;"))
+	(button
+	:onclick "eww open --toggle system"
+	    (image :path "images/chevron-down.svg" :image-width 20 :image-height 20)
+	)
+    )
+)
+(defvar BATT_REVEAL false)
+
+(deflisten WIFI_LIST :initial "[]" "cat network.json")
+(defvar reveal_network_name "")
+(defvar IS_CONNECTION false)
+(defwindow network []
+:monitor 0
+:stacking "fg"
+:focusable true 
+:geometry (geometry :x "60px" :width "35%" :height "20%" :anchor "top right")
+    (scroll
+    :vscroll true
+    :style "padding:5px;"
+    :hexpand true 
+    :vexpand true
+    (box
+      :class "network_panel"
+      :orientation "v"
+      :space-evenly false
+      :spacing 10
+      (for network in WIFI_LIST
+          (box 
+            :orientation "v"
+            :height 30
+            :style "border-bottom:1px;border-color:white;"
+              (box 
+                :orientation "h"
+                :space-evenly false
+		:spacing 10
+                (label :text "${network.network}" 
+                :show-truncated true
+                :justify "left" 
+                :halign "start" )
+                (button :class "${network.network!=WIFI_CONNECTED?'connect_button':'connected_button'}"
+                  :timeout "200ms"
+                  :width 100
+                  :halign "end"
+                  :space-evenly false
+                  :style "padding:5px 3px; "
+                  :onclick "scripts/wifi.sh --check_connect '${network.network}'" 
+                (box 
+                  :space-evenly false 
+                  :spacing 5
+                    (image :path "images/connect.svg" 
+                    :image-width 15 
+                    :image-height 15
+                    )
+                    (label :text "${network.network==WIFI_CONNECTED?'Connecting':'Connect'}"
+                    :justify "center"
+                    ))
+                )
+              )
+              (revealer :transition "slidedown"
+                :vexpand true
+                :width 50
+                :visible {(network.network==reveal_network_name && network.network != WIFI_CONNECTED)?true:false}
+                :reveal {network.network==reveal_network_name?true:false}
+                :duration "200ms"  
+                  (input :password true
+                    :class "password_input"
+                    :onaccept "nmcli device wifi connect \"${network.network}\" password {}"
+                  )
+              )
+          )
+            
+        )
+      )
+    )
+)
+(defpoll DAY :interval "10h" "date +%d")
+(defvar DATEDIF "0")
+(defwindow calendar
+  :monitor 0 
+  :geometry (geometry :y "30px" :x "10px" :width "10%" :height "10%" :anchor "top right")
+  :stacking "overlay"
+  (box :space-evenly false
+  :spacing 10
+  :orientation "v"
+  (box :orientation "v" 
+  :space-evenly false 
+   (label :text {DATEDIF==0?"Pick a date:":DATEDIF} :style "background-color:rgba(0,0,0,1);font-weight:bold;font-family:SF Pro Display;")
+   (cal)   
+    )
+  (box
+    :space-evenly true
+    :orientation "h"
+    (box
+	(button
+	:timeout "200ms"
+	:onclick "kitty --hold --class floating nvim ~/vimwiki/"
+	(image 
+	:path "images/note.png"
+	:image-width 200
+	:image-height 200)
+	)
+    )
+  )
+  )
+)
+(defwidget cal []
+  (calendar :day DAY
+    :show-details true 
+    :show-heading true :show-day-names true
+    :onclick "eww update DATEDIF=$((($(date -d {2}-$(({1}+1))-{0} +%s) - $(date -d $(date +%F) +%s))/86400)) "
+  )
+)
+(defpoll cloudflare_status :interval "3s"  "warp-cli status | grep 'Status update' |awk -F '.' '{print$1}' | awk -F ': ' '{print$2}'" )
+(defwidget cloudflare[]
+    (eventbox
+    :onclick "eww open --toggle cloudflare"
+    :onhover "eww update CLOUDFLARE_REVEAL=true"
+    :onhoverlost "eww update CLOUDFLARE_REVEAL=false"
+    (box :space-evenly false :spacing 5
+    :orientation "h"
+	(image 
+	  :path {cloudflare_status=="Disconnected"?"images/cloudflare-disconnect.svg":"images/cloudflare.svg"} 
+	  :image-width 25 
+	  :image-height 25)
+	(revealer 
+	:reveal "${CLOUDFLARE_REVEAL}"
+	:transition "slideright"
+	:duration "500ms"
+	    (label :text cloudflare_status :style "font-size:13px;")
+	)
+    )
+    )
+)
+(defvar CLOUDFLARE_REVEAL false)
+(defwindow cloudflare :monitor 0 
+    :geometry (geometry :width "15%" 
+                        :height "10%"
+                        :x "15%"
+                        :anchor "top right")
+    :stacking "fg"
+    (box 
+      :class "cloudflare"
+      :space-evenly true
+      :orientation "v"
+      (label :text "Cloudflare WARP-CLI")
+      (button 
+        :onclick {cloudflare_status=='Disconnected'? ' warp-cli connect' : 'warp-cli disconnect'}
+        (image
+          :image-height 100
+          :image-width 50
+          :path {cloudflare_status=="Disconnected"?"images/cloudflare-disconnect.svg":"images/cloudflare.svg"} 
+        )
+      )
+      (label :text cloudflare_status)
+    )
+)
+
+(defwidget wifi []
+  (eventbox
+    :onhover "eww update wifi_rev=true"
+    :onhoverlost "eww update wifi_rev=false"
+    :cursor "pointer"
+      (box :vexpand false 
+      :hexpand false 
+      :space-evenly false 
+      :spacing 3 
+      :orientation "h" 
+          (image :path {WIFI_STRENGTH>50?"images/wifi-full.svg":WIFI_STRENGTH>0?"images/wifi-low.svg":"images/wifi-none.svg"}
+          :image-width 23 
+          :image-height 23)
+          (revealer :transition "slideright"
+          :reveal wifi_rev
+          :duration "350ms"
+	      (button
+		:onclick "scripts/wifi.sh --wifi_list && eww open --toggle network"
+		(label :class "ssid_text"
+		:style "font-weight:600;font-size:13px;"
+		:text "${WIFI_CONNECTED?:"Still not connect..."}"
+		:orientation "h"))))))
+(defpoll DISK :interval "1m" "lsblk -f -J | jq '.blockdevices[0].children | map(select(.name == \"nvme0n1p3\")) '")
+(defwidget sys []
+    (box
+	:class "sys_box"
+	:vexpand false
+	:hexpand false
+	:space-evenly false
+	:spacing 15
+	:orientation "h"
+	(box
+	:width 20
+	:height 10
+	:vexpand false
+	:hexpand false
+	:class "ram_container"
+	    (circular-progress :value {EWW_RAM.used_mem_perc}
+		:thickness 10
+		:width 5
+		:class "ram_progress"
+		:tooltip "${round(EWW_RAM.used_mem_perc,1)}%"
+		(image :path "images/ram-white.svg" 
+		:image-width 20 
+		:image-height 20 )
+	    )
+	)
+	(box
+	:width 30
+	:vexpand false
+	:hexpand false
+	:space-evenly false
+	:spacing 5
+	:orientation "h"
+	:valign "center"
+	:class "disk_container"
+	(label :text "DISK:" :style "font-size:13px;" )
+	 ;;   (label :text "DISK: ${DISK[0]['fsavail']} "
+	 ;;       :justify "center" 
+	 ;;   :style "color:white;font-weight:bold;")
+	    (progress 
+	  :value "${round(EWW_DISK["/boot"]["used_perc"],1)}"
+	    :class "disk_progress"	
+	    :orientation "h"
+	    :flipped false 
+	    :width 30
+	    :height 20
+	    :tooltip "${round(EWW_DISK["/boot"]["used_perc"],1)}%"
+	    )
+	)
+	(box
+	:width 20
+	:vexpand false
+	:hexpand false
+	:spacing 5
+	:space-evenly false
+	:valign "center"
+	:orientation "h"
+	:class "cpu_container"
+	    (label :text "CPU:" :style "font-size:13px;" )
+	    (progress 
+	    :value "${round(EWW_CPU.avg,1)}"
+	    :class "cpu_progress"	
+	    :orientation "h"
+	    :flipped false 
+	    :width 30
+	    :height 20
+	    :tooltip "${round(EWW_CPU.avg,1)}%"
+	    )
+	)  
+    )
+)
+
+(defwindow system 
+    :monitor 0
+    :geometry (geometry
+		:x "1%"
+		:width "20%"
+		:height "120%"
+		:anchor "top right")
+    :stacking "fg"
+    :exclusive false
+(box
+:orientation "v"
+:space-evenly false
+:spacing 5
+:style "background-color:rgba(0, 0, 0,.7);"
+  (sys)
+  (snippingtool)
+  (notify_center)
+  )
+)
+(deflisten notiflist :initial `scripts/notify` "scripts/notify")
+(defwidget notify_center []
+    (box
+    :space-evenly false
+    :height 300
+    :orientation "v"
+    :spacing 5
+	(box
+	:height 10
+	:style "background-color:rgba(255,250,250,.3);border-radius:10px;padding:5px 13px;;"
+	 (label :text "Notifications" :justify "left" :width 10))
+	 (scroll
+	 :height 900
+	    :vscroll true 
+	    :hscroll false 
+	;;	(literal :content notiflist)
+(box :space-evenly false :spacing 5 :orientation "v" :halign "center"(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 123 new messages' :body '"EP120: What do version numbers mean? " and 4 more from Substack Reads' :timestamp '95963143307' )(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 127 new messages' :body '"Này là gì ạ?" from Reddit' :timestamp '95359520310' )(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 122 new messages' :body 'Supabase Might be better than Convex for Real-Time Collaborative Apps! from "\\newline Team"' :timestamp '94750566795' )(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 122 new messages' :body 'Your Weekly Stack from Substack Reads' :timestamp '94145549700' )(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 91 new messages' :body 'Your YouTube partner account connection has expired from YouTube' :timestamp '93786072763' )(notifications :app 'Thunderbird' :summary 'hopelessornohope@gmail.com received 121 new messages' :body 'Full Stack Certification Awaits You. Get Started Today. from "Udemy Instructor: YouAccel Training"' :timestamp '93557578126' )(notifications :app 'Thunderbird' :summary 'binhnh0311@gmail.com received 3 new messages' :body '[QC] Chuyên Viên Phân Tích - BA và 9 việc làm phù hợp nhất dành cho bạn from VietnamWorks' :timestamp '93519625175' )(notifications :app 'Spotify' :summary 'Gorgeous' :body 'Kanye West - My Beautiful Dark Twisted Fantasy' :timestamp '89467037864' )(notifications :app 'Spotify' :summary 'Dark Fantasy' :body 'Kanye West - My Beautiful Dark Twisted Fantasy' :timestamp '8066128291' ))
+	)
+    )
+)
+
+(defwidget notifications [app ?summary ?body ?timestamp]
+    (box
+    :halign "start"
+     :orientation "v"
+     :space-evenly true 
+     :spacing 5
+     :width 400
+     :style "background-color:rgba(120, 183, 208,.7);padding:3px 5px;border-radius:5px;"
+     (label :text "${app}" 
+     :style "font-size:18px;" :halign "start")
+      (label :text "${summary}" 
+     :style "font-size:16px;" :halign "start")
+    (label :text "${body}" 
+    :truncate true
+    :show-truncated true
+    :wrap false
+     :style "font-size:13px;" :halign "start")
+    (label :text "${formattime(timestamp,"%r %v","Asia__Ho_Chi_Minh")}" 
+     :style "font-size:13px;opacity:0.7;" :halign "end")
+
+    )
+)

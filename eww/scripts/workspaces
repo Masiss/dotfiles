@@ -1,0 +1,6 @@
+#!/bin/sh
+# dynamic workspaces by XXiaoA
+# reference: https://github.com/Prayag2/bspdd/
+event_workspacev2() {
+  eww update CUR_WORKSPACE="$WORKSPACEID"
+}

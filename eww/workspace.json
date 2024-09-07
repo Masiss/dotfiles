@@ -1,0 +1,27 @@
+[
+  {
+    "id":1,
+    "icon":"terminal.svg"
+  },
+  {
+    "id":2,
+    "icon":"browser.svg"
+  },
+  {
+    "id":3,
+    "icon":"circle.svg"
+  },
+  {
+    "id":4,
+    "icon":"circle.svg"
+  },
+  {
+    "id":5,
+    "icon":"edge.svg"
+  },
+  {
+    "id":6,
+    "icon":"spotify.svg"
+  }
+]
+

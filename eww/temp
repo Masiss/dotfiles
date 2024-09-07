@@ -1,0 +1,15 @@
+(eventbox
+	:onclick "hyprctl dispatch workspace 6"
+	:space-evenly false :spacing 3
+	:onhover "eww update REVEAL_SPOTIFY=true"
+	:onhoverlost "eww update REVEAL_SPOTIFY=false"
+	    (box :space-evenly false :spacing 3
+		(image :path "images/spotify.svg" :image-width 20 :image-height 20)
+		(revealer :transition "slideright"
+		:reveal {(PLAYER_STATUS=="Playing" || REVEAL_SPOTIFY )?true:false} 
+		:duration "500ms"
+		    (label :text SONG 
+		    :style "font-family:SF Pro Display;")
+		)
+	    )
+	)

@@ -1,0 +1,10 @@
+;;(include "yuck/bar.yuck")
+(include "yuck/notch.yuck")
+;;(include "yuck/powermenu.yuck")
+(include "yuck/navbar.yuck")
+
+(defwidget sep []
+  (box :class "module-2" :vexpand false :hexpand false
+    (label :class "separ" :text "|")))
+
+ 

@@ -1,0 +1,248 @@
+
+(defpoll SONG :interval "3s" :initial "wait, let me cook" "playerctl --player=spotify metadata xesam:title")
+(defpoll ARTWORK :interval "3s" "scripts/spotify/spotify-artwork.sh")
+(defpoll ARTIST :interval "3s" "playerctl --player=spotify metadata xesam:artist")
+(defpoll TRACK_STATUS :interval "1s" "playerctl --player=spotify metadata  --format '{{duration(position)}}/{{duration(mpris:length) }}'")
+(defpoll PLAYER_STATUS :interval "5s" "playerctl --player=spotify status")
+(defvar PREVIOUS_BUTTON "icons/previous.svg")
+(defvar TOGGLE_BUTTON "icons/play-pause.svg")
+(defvar NEXT_BUTTON "icons/next.svg")
+(defpoll IMG :interval "3s" "/home/binhnguyen/.config/eww/scripts/spotify/image.jpg")
+(defpoll clock_time :interval "1m" "date +\%H")
+(defpoll clock_minute :interval "5s" "date +\%M")
+(defpoll BATTERY :interval '3s' "cat /sys/class/power_supply/BAT1/capacity")
+(defpoll BATTERY_STATUS :interval '3s' "cat /sys/class/power_supply/BAT1/status")
+(defwidget spotify []
+  (box
+  :class "spotify" 
+   :active true
+   :hexpand false
+   :vexpand false
+    (box
+    :class "artwork_container"
+    :spacing 3 
+    :orientation "h" 
+    :space-evenly false
+    :style "background-image:url('${ARTWORK}');margin:4px;"
+    )
+  (box
+  :orientation "v"
+  :class "info_containter"
+    (button :timeout "200ms"
+    :onclick "hyprctl dispatch workspace 6"
+      (label 
+      :class "song"
+      :text SONG 
+      :truncate true 
+      :truncate-left false 
+      :show-truncated true 
+      :unindent true 
+      :justify "center"))
+    (label :class "artist"
+    :justify "center"
+    :text ARTIST)
+    (box 
+    :class "control_container"
+    :spacing 3 
+    :orientation "h" 
+    :space-evenly true
+      (button 
+      :class "spotify_button"
+      :onclick "playerctl --player=spotify previous"
+      (image 
+      :path PREVIOUS_BUTTON 
+      :image-width 20 
+      :image-height 20))
+      (button 
+      :class "spotify_button"
+      :onclick "playerctl --player=spotify play-pause"
+      (image 
+      :path TOGGLE_BUTTON
+      :image-width 20 
+      :image-height 20))
+      (button 
+      :class "spotify_button"
+      :onclick "playerctl --player=spotify next"
+      (image 
+      :path NEXT_BUTTON 
+      :image-width 20 
+      :image-height 20))
+    ))))
+
+
+(defpoll VOLUME :interval "1s" "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk -F ': ' '{print$2}'")
+(defpoll VOLUME_STATUS :interval "3s" "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print$3}'")
+(defpoll MIC_STATUS :interval "3s" "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk -F ' ' '{print$3}'")
+(defwidget volume []
+(box :orientation "h" :valign "center" :space-evenly false :spacing 15  
+  (button :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+   (image 
+   :style "${VOLUME_STATUS=='[MUTED]'?'background-color:rgba(255,250,250,.5);':''}border-radius:10px;padding:2px;"
+   :path "${VOLUME_STATUS=='[MUTED]'?'images/volume-xmark.svg':VOLUME>=0.5?'images/volume-max.svg':'images/volume-min.svg'}" :image-width 30 :image-height 30))
+   (scale :orientation "h"
+    :min 0 :max 100 :draw-value false 
+    :round-digits 0
+    :width 200
+    :value {VOLUME*100}
+    :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%"
+    )
+   (box
+    :style "${MIC_STATUS=='[MUTED]'?'background-color:rgba(255,250,250,0.5)':''};padding:5px;border-radius:10px;"
+    (button
+      :onclick "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+      (image :path "${MIC_STATUS=='[MUTED]'?'images/microphone-slash.svg':'images/microphone.svg'}" :image-width 30 :image-height 30)
+      
+    ))
+  )
+)
+
+(defpoll brightness_percent :interval "5s" "brightnessctl -m | awk -F ',' '{print$4}' | tr -d '%'")
+(defwidget bright[]
+(box :orientation "h" :valign "center" :space-evenly false :spacing 15 
+  (image :path "images/bright.svg" :image-height 30 :image-width 30)
+  (scale :orientation "h"
+    :min 0 :max 100 :draw-value false 
+    :width 200
+    :value {brightness_percent}
+    :onchange "brightnessctl set {}%"
+  )
+)
+
+)
+
+(defwidget notch_slide []
+  (box :class "notch"
+  :orientation "h"
+  :width {(3072/1.5)*0.4}
+  :spacing 30 
+  (spotify) 
+  (box :orientation "v"
+  :space-evenly false 
+  :spacing 15
+  :style "margin:10px 0px;"
+  (volume) (bright) (snippingtool)
+  )
+))
+
+(defwidget snippingtool []
+(box :class "snipping_containter"
+  :orientation "h"
+  :space-evenly false
+  :spacing 50
+  :halign "center"
+  (button
+    :class "snip_button"
+    :onclick "scripts/screenshot.sh --screenshot"
+    (image
+      :path "${IMGDIR}fullscreen.svg"
+      :image-width 30 
+      :image-height 30 
+    )
+  )
+  (button 
+    :class "snip_button"
+   ;; :onclick "grim -g \"$(slurp)\" \"/home/binhnguyen/Pictures/Screenshot/$(date +'%s_grim.png')\" | wl-copy"
+   :onclick "slurp | grim -g - - | wl-copy -t image/png && wl-paste > /home/binhnguyen/Pictures/Screenshot/$(date +'%s_grim.png')"
+    (image 
+      :path "${IMGDIR}select_tool.svg"
+      :image-width 30 
+      :image-height 30
+    )
+  )
+)
+)
+
+(defvar notch_reveal false)
+
+(defwindow notch 
+:monitor 0 
+:geometry (geometry
+            :y -30
+            :x 0
+            :width "45%"
+            :height "3%"
+            :anchor "top center")
+:stacking "fg"
+(notch)
+)
+ (defwidget mini_spotify []
+  (box
+    :class "mini_artwork"
+    :orientation "h"
+    :valign "center"
+    :space-evenly false
+    :spacing 20 
+      (box
+        :space-evenly false
+        :spacing 5
+        :halign "start"
+          (image :path ARTWORK
+          :image-width 30
+          :image-height 30
+          :style "border-radius:30px;")
+          (label :text SONG 
+          :style "font-weight:bold;"
+          :limit-width 20
+          :justify "left"
+          :truncate-left false
+          :show-truncated true
+          )
+      )
+      (label :text PLAYER_STATUS
+      :wrap false
+      :justify "right"
+      :halign "end"
+      )
+  )
+)
+
+
+(defwidget notch []
+(eventbox :timeout "200ms"
+          :onhover "eww update notch_reveal=true"
+          :onhoverlost "eww update notch_reveal=false"
+          :hexpand false
+          :vexpand false
+          :valign "center"
+          (box :class "black_notch"
+            (centerbox
+              :orientation "h"
+              :visible {!notch_reveal}
+            (mini_spotify)
+            (box
+              :spacing 15
+              :orientation "h"
+                (sep)
+                (label :text "${clock_time} : ${clock_minute}" 
+                :justify "center" 
+                :wrap true 
+                :style "font-weight:bold;")
+                (sep)
+              )
+           (battery) )
+             (revealer :duration "100ms"
+                :transition "slidedown"
+                :visible notch_reveal
+                :reveal notch_reveal
+                (notch_slide)
+              ) 
+           ))
+)
+
+(defwidget battery []
+  (box
+    :space-evenly false
+    :halign "end"
+    :style "margin-right:20px;"
+    (image 
+      :image-width 30 
+      :image-height 30
+      :path {BATTERY_STATUS=='Charging'?'images/battery-bolt.svg':
+	BATTERY>70?'images/battery-full.svg':
+	BATTERY>20?'images/battery-mid.svg':
+	'images/battery-low.svg'})
+    (label :text '${BATTERY}%' :style "font-weight:bold;")
+    )
+)
+
+

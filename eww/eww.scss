@@ -1,0 +1,32 @@
+@import "colors/everforest.scss";
+// @import "scss/bar.scss";
+// @import "scss/powermenu.scss";
+// @import "scss/player.scss";
+@import "scss/notch.scss";
+@import "scss/navbar.scss";
+.brightbar trough highlight {
+  background-image: linear-gradient(to right, #e4c9af 30%, #f2cdcd 50%, #e0b089 100% *50);
+  border-radius: 10px;
+}
+calendar{
+  background-color:$bg;
+  opacity:0.8;
+  font-weight:600;
+  font-family:SF Pro Display;
+  padding:10px;
+  :selected {
+    background-color:$blue;
+  }
+  :indeterminate{
+    color:$color1;
+    opacity:0.1;
+    padding:0;
+    margin:0;
+  }
+  .highlight{
+ color: $teal;
+    font-weight: bold;
+
+  }
+}
+

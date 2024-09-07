@@ -1,0 +1,19 @@
+#!/bin/bash
+
+CONFIGDIR="/home/binhnguyen/.config/eww"
+while true; do
+
+    list=$(dunstctl history | jq .data[0])
+    echo ${list} > ${CONFIGDIR}/notify_log.json
+    notify="(box :space-evenly false :spacing 5 :orientation \"v\" :halign \"center\""
+    readarray -t my_array < <(jq --compact-output '.[]' ${CONFIGDIR}/notify_log.json)
+    for i in "${my_array[@]}"; do
+	appname=$(jq --raw-output '.appname.data' <<< "$i")
+	summary=$(jq --raw-output '.summary.data' <<< "$i")
+	body=$(jq --raw-output '.body.data' <<< "$i")
+	timestamp=$(jq --raw-output '.timestamp.data' <<< "$i")
+	notify+="(notifications :app '${appname}' :summary '${summary}' :body '${body}' :timestamp '${timestamp}' )"
+    done
+    notify+=")"
+echo "${notify}"
+done
