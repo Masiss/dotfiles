@@ -1,0 +1,32 @@
+[Added Associations]
+text/x-log=sublime_text.desktop;
+application/x-zerosize=sublime_text.desktop;
+text/plain=sublime_text.desktop;
+x-scheme-handler/http=floorp.desktop;
+x-scheme-handler/https=floorp.desktop;
+x-scheme-handler/chrome=floorp.desktop;
+text/html=floorp.desktop;
+application/x-extension-htm=floorp.desktop;
+application/x-extension-html=floorp.desktop;
+application/x-extension-shtml=floorp.desktop;
+application/xhtml+xml=floorp.desktop;
+application/x-extension-xhtml=floorp.desktop;
+application/x-extension-xht=floorp.desktop;
+application/x-shellscript=sublime_text.desktop;
+text/x-csrc=sublime_text.desktop;
+application/vnd.microsoft.portable-executable=wine.desktop;7zFM.desktop;
+
+[Default Applications]
+application/x-zerosize=sublime_text.desktop
+x-scheme-handler/http=floorp.desktop
+x-scheme-handler/https=floorp.desktop
+x-scheme-handler/chrome=floorp.desktop
+text/html=floorp.desktop
+application/x-extension-htm=floorp.desktop
+application/x-extension-html=floorp.desktop
+application/x-extension-shtml=floorp.desktop
+application/xhtml+xml=floorp.desktop
+application/x-extension-xhtml=floorp.desktop
+application/x-extension-xht=floorp.desktop
+application/vnd.microsoft.portable-executable=7zFM.desktop
+x-scheme-handler/jetbrains=jetbrains-toolbox.desktop

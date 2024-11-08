@@ -1,0 +1,6 @@
+2024/10/12-03:13:03.562 4 Reusing MANIFEST /home/binhnguyen/.config/google-chrome/Default/Local Storage/leveldb/MANIFEST-000001
+2024/10/12-03:13:03.565 4 Recovering log #94
+2024/10/12-03:13:03.565 4 Reusing old log /home/binhnguyen/.config/google-chrome/Default/Local Storage/leveldb/000094.log 
+2024/10/12-03:22:04.937 4 Level-0 table #98: started
+2024/10/12-03:22:04.951 4 Level-0 table #98: 43621 bytes OK
+2024/10/12-03:22:04.954 4 Delete type=0 #94
